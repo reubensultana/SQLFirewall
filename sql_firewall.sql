@@ -104,11 +104,11 @@ Test
 
     # Install-Module dbatools -Force # if not installed
     Import-Module dbatools
-    $SQLFirewallTest = GetCredential
+    $SQLFirewallTest = Get-Credential
     # enter the credentials for the SQLFirewallTest login
 
     Invoke-DBAQuery -SqlInstance "localhost,14331" -SqlCredential $SQLFirewallTest `
-        -SqlQuery "SELECT @@SERVERNAME AS [ServerName], ORIGINAL_LOGIN() AS [LoginName], HOST_NAME() AS [HostName], CURRENT_TIMESTAMP AS [CurrentTimestamp];"
+        -Query "SELECT @@SERVERNAME AS [ServerName], ORIGINAL_LOGIN() AS [LoginName], HOST_NAME() AS [HostName], CURRENT_TIMESTAMP AS [CurrentTimestamp];"
     # this should succeed
 
 3. In SSMS, create a rule for "SQLFirewallTest" to only allow connections from "10.20.30.40" (a ficticious address)
@@ -123,7 +123,7 @@ Test
 4. Back in the PowerShell window, test again.
 
     Invoke-DBAQuery -SqlInstance "localhost,14331" -SqlCredential $SQLFirewallTest `
-        -SqlQuery "SELECT @@SERVERNAME AS [ServerName], ORIGINAL_LOGIN() AS [LoginName], HOST_NAME() AS [HostName], CURRENT_TIMESTAMP AS [CurrentTimestamp];"
+        -Query "SELECT @@SERVERNAME AS [ServerName], ORIGINAL_LOGIN() AS [LoginName], HOST_NAME() AS [HostName], CURRENT_TIMESTAMP AS [CurrentTimestamp];"
     # this should fail
 */
 
