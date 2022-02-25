@@ -77,7 +77,9 @@ BEGIN
             DECLARE @EventData XML;
             SET @EventData = EVENTDATA();
             --SET @SourceNetAddress = COALESCE( ( SELECT @EventData.value('(/EVENT_INSTANCE/ClientHost/CommandText)[1]','varchar(48)') ), HOST_NAME(), '');
-            SET @SourceNetAddress = ( SELECT @EventData.value('(/EVENT_INSTANCE/ClientHost/CommandText)[1]','varchar(48)') );
+            --SET @SourceNetAddress = ( SELECT @EventData.value('(/EVENT_INSTANCE/ClientHost/CommandText)[1]','varchar(48)') );
+            -- the "CommandText" doesn't always work, or returns a NULL value
+            SET @SourceNetAddress = ( SELECT @EventData.value('(/EVENT_INSTANCE/ClientHost)[1]','varchar(48)') );
             IF NOT EXISTS ( SELECT * FROM [dbo].[sqlfirewall_allowlist] WHERE [al_net_address] = @SourceNetAddress )
             BEGIN
                 -- log a message in the ERORLOG that the connection attempt was denied
@@ -138,7 +140,16 @@ DROP TRIGGER [sqlfirewall_allowlist_trigger] ON ALL SERVER
 GO
 DROP TABLE [dbo].[sqlfirewall_allowlist]
 GO
--- NOTE: you might have to kill active/pooled connections
+-- kill active/pooled connections
+DECLARE @SqlCmd nvarchar(4000) = N'';
+-- build the KILL commands
+SELECT @SqlCmd = N'KILL ' + CAST([session_id] AS nvarchar(10)) + N';' + @SqlCmd
+FROM sys.dm_exec_sessions
+WHERE [login_name] = N'SQLFirewallTest'
+ORDER BY [session_id] DESC;
+-- execute the KILL commands
+EXEC sp_executesql @SqlCmd;
+GO
 DROP LOGIN [SQLFirewallTest]
 GO
 */
